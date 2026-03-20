@@ -8,18 +8,31 @@ import FollowUp from './pages/FollowUp'
 import Content from './pages/Content'
 import Statistics from './pages/Statistics'
 import Settings from './pages/Settings'
-import { initStorage } from './lib/storage'
+import Login from './pages/Login'
+import { ensureInitialized } from './lib/dataInit'
 import './App.css'
 
-// 初始化localStorage数据
-initStorage()
+// 初始化localStorage数据（懒加载）
+ensureInitialized()
+
+// 登录判断：localStorage 中是否有当前用户
+const isLoggedIn = localStorage.getItem('deepfmt_current_user') !== null
 
 function App() {
   return (
     <ConfigProvider locale={zhCN}>
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<MainLayout />}>
+          {/* 登录页 */}
+          <Route
+            path="/login"
+            element={isLoggedIn ? <Navigate to="/dashboard" replace /> : <Login />}
+          />
+          {/* 受保护的路由 */}
+          <Route
+            path="/"
+            element={isLoggedIn ? <MainLayout /> : <Navigate to="/login" replace />}
+          >
             <Route index element={<Navigate to="/dashboard" replace />} />
             <Route path="dashboard" element={<Dashboard />} />
             <Route path="patients" element={<Patients />} />
@@ -28,6 +41,8 @@ function App() {
             <Route path="statistics" element={<Statistics />} />
             <Route path="settings" element={<Settings />} />
           </Route>
+          {/* 未匹配路由重定向 */}
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </BrowserRouter>
     </ConfigProvider>

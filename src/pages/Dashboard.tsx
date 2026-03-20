@@ -1,111 +1,126 @@
-import { Card, Col, Row, Statistic, Table, Tag, Typography } from 'antd'
-import { UserOutlined, ClockCircleOutlined, CheckCircleOutlined, SmileOutlined } from '@ant-design/icons'
+import { useState, useEffect } from 'react'
+import { Card, Col, Row, Statistic, Typography, Table, Tag } from 'antd'
+import {
+  TeamOutlined,
+  MedicineBoxOutlined,
+  CheckCircleOutlined,
+  CalendarOutlined,
+  ClockCircleOutlined,
+} from '@ant-design/icons'
 import type { ColumnsType } from 'antd/es/table'
+import { api, User, FollowupRecord } from '../lib/api'
 
 const { Title } = Typography
 
-interface TreatmentRecord {
-  key: string
-  patientName: string
-  treatmentDate: string
-  status: string
-  score: number
-}
-
-const recentRecords: TreatmentRecord[] = [
-  { key: '1', patientName: '张三', treatmentDate: '2024-01-15', status: '治疗中', score: 85 },
-  { key: '2', patientName: '李四', treatmentDate: '2024-01-14', status: '已完成', score: 92 },
-  { key: '3', patientName: '王五', treatmentDate: '2024-01-14', status: '随访中', score: 78 },
-  { key: '4', patientName: '赵六', treatmentDate: '2024-01-13', status: '已完成', score: 88 },
-  { key: '5', patientName: '钱七', treatmentDate: '2024-01-13', status: '治疗中', score: 80 },
-]
-
-const columns: ColumnsType<TreatmentRecord> = [
-  {
-    title: '患者姓名',
-    dataIndex: 'patientName',
-    key: 'patientName',
-  },
-  {
-    title: '治疗日期',
-    dataIndex: 'treatmentDate',
-    key: 'treatmentDate',
-  },
-  {
-    title: '状态',
-    dataIndex: 'status',
-    key: 'status',
-    render: (status: string) => {
-      const colorMap: Record<string, string> = {
-        '治疗中': 'blue',
-        '已完成': 'green',
-        '随访中': 'orange',
-      }
-      return <Tag color={colorMap[status] || 'default'}>{status}</Tag>
-    },
-  },
-  {
-    title: '评分',
-    dataIndex: 'score',
-    key: 'score',
-    sorter: (a, b) => a.score - b.score,
-  },
-]
-
 const Dashboard = () => {
+  const [users, setUsers] = useState<User[]>([])
+  const [followupRecords, setFollowupRecords] = useState<FollowupRecord[]>([])
+
+  useEffect(() => {
+    const loadData = () => {
+      const userList = api.getUsers()
+      const records = api.getFollowupRecords()
+      setUsers(userList)
+      setFollowupRecords(records)
+    }
+    loadData()
+  }, [])
+
+  const totalPatients = users.length
+  const inTreatment = users.filter(u => u.treatment_status === '治疗中').length
+  const completed = users.filter(u => u.treatment_status === '已完成').length
+  const followupCompleted = followupRecords.filter(r => r.status === '已提交' || r.status === '已查看').length
+  const followupPending = followupRecords.filter(r => r.status === '待填写').length
+
+  const recentFollowups = [...followupRecords]
+    .sort((a, b) => new Date(b.submitted_at).getTime() - new Date(a.submitted_at).getTime())
+    .slice(0, 5)
+
+  const recentColumns: ColumnsType<FollowupRecord> = [
+    {
+      title: '患者',
+      dataIndex: 'user_id',
+      key: 'user_id',
+      render: (userId: string) => {
+        const user = users.find(u => u.id === userId)
+        return user?.name || userId
+      },
+    },
+    {
+      title: '治疗次数',
+      dataIndex: 'treatment_count',
+      key: 'treatment_count',
+    },
+    {
+      title: '评分',
+      dataIndex: 'total_score',
+      key: 'total_score',
+      render: (score: number) => (
+        <Tag color={score >= 20 ? 'green' : score >= 15 ? 'blue' : 'orange'}>
+          {score}分
+        </Tag>
+      ),
+    },
+    {
+      title: '状态',
+      dataIndex: 'status',
+      key: 'status',
+      render: (status: string) => {
+        const colorMap: Record<string, string> = {
+          '已查看': 'green',
+          '已提交': 'cyan',
+          '待填写': 'orange',
+        }
+        return <Tag color={colorMap[status] || 'default'}>{status}</Tag>
+      },
+    },
+    {
+      title: '提交时间',
+      dataIndex: 'submitted_at',
+      key: 'submitted_at',
+      render: (date: string) => new Date(date).toLocaleDateString('zh-CN'),
+    },
+  ]
+
   return (
     <div>
       <Title level={3} style={{ marginBottom: 24 }}>数据概览</Title>
-      
       <Row gutter={[16, 16]}>
         <Col xs={24} sm={12} lg={6}>
-          <Card>
-            <Statistic
-              title="患者总数"
-              value={1128}
-              prefix={<UserOutlined />}
-              valueStyle={{ color: '#1890ff' }}
-            />
+          <Card hoverable>
+            <Statistic title="患者总数" value={totalPatients} prefix={<TeamOutlined />} valueStyle={{ color: '#1890ff' }} />
           </Card>
         </Col>
         <Col xs={24} sm={12} lg={6}>
-          <Card>
-            <Statistic
-              title="治疗中"
-              value={156}
-              prefix={<ClockCircleOutlined />}
-              valueStyle={{ color: '#faad14' }}
-            />
+          <Card hoverable>
+            <Statistic title="治疗中" value={inTreatment} prefix={<MedicineBoxOutlined />} valueStyle={{ color: '#07C160' }} />
           </Card>
         </Col>
         <Col xs={24} sm={12} lg={6}>
-          <Card>
-            <Statistic
-              title="已完成"
-              value={892}
-              prefix={<CheckCircleOutlined />}
-              valueStyle={{ color: '#52c41a' }}
-            />
+          <Card hoverable>
+            <Statistic title="已完成" value={completed} prefix={<CheckCircleOutlined />} valueStyle={{ color: '#52c41a' }} />
           </Card>
         </Col>
         <Col xs={24} sm={12} lg={6}>
-          <Card>
-            <Statistic
-              title="随访完成"
-              value={680}
-              prefix={<SmileOutlined />}
-              valueStyle={{ color: '#722ed1' }}
-            />
+          <Card hoverable>
+            <Statistic title="随访记录" value={followupCompleted} suffix={`/ ${followupRecords.length}`} prefix={<CalendarOutlined />} valueStyle={{ color: '#722ed1' }} />
           </Card>
         </Col>
       </Row>
-
-      <Card title="最近治疗记录" style={{ marginTop: 24 }}>
-        <Table
-          columns={columns}
-          dataSource={recentRecords}
-          pagination={false}
-        />
+      <Row gutter={[16, 16]} style={{ marginTop: 16 }}>
+        <Col xs={24} sm={12}>
+          <Card hoverable>
+            <Statistic title="待填写随访" value={followupPending} prefix={<ClockCircleOutlined />} valueStyle={{ color: '#fa8c16' }} />
+          </Card>
+        </Col>
+        <Col xs={24} sm={12}>
+          <Card hoverable>
+            <Statistic title="随访完成率" value={followupRecords.length > 0 ? Math.round(followupCompleted / followupRecords.length * 100) : 0} suffix="%" prefix={<CalendarOutlined />} valueStyle={{ color: '#13c2c2' }} />
+          </Card>
+        </Col>
+      </Row>
+      <Card title="近期随访记录" style={{ marginTop: 24 }}>
+        <Table columns={recentColumns} dataSource={recentFollowups} pagination={false} size="small" rowKey="id" />
       </Card>
     </div>
   )
