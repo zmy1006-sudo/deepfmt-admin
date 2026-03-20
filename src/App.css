@@ -11,3 +11,9 @@ body {
 #root {
   min-height: 100vh;
 }
+
+/* 知识库匹配高亮行 */
+.ant-table-row-highlight > td {
+  background-color: #f6ffed !important;
+}
+

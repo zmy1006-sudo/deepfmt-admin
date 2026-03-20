@@ -9,6 +9,9 @@ import Content from './pages/Content'
 import Statistics from './pages/Statistics'
 import Settings from './pages/Settings'
 import Login from './pages/Login'
+import Video from './pages/Video'
+import KnowledgeBase from './pages/KnowledgeBase'
+import Medicine from './pages/Medicine'
 import { ensureInitialized } from './lib/dataInit'
 import './App.css'
 
@@ -40,6 +43,9 @@ function App() {
             <Route path="content" element={<Content />} />
             <Route path="statistics" element={<Statistics />} />
             <Route path="settings" element={<Settings />} />
+            <Route path="video" element={<Video />} />
+            <Route path="knowledge" element={<KnowledgeBase />} />
+            <Route path="medicine" element={<Medicine />} />
           </Route>
           {/* 未匹配路由重定向 */}
           <Route path="*" element={<Navigate to="/" replace />} />

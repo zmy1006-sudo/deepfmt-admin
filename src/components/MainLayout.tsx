@@ -10,6 +10,8 @@ import {
   SettingOutlined,
   LogoutOutlined,
   MedicineBoxOutlined,
+  VideoCameraOutlined,
+  BlockOutlined,
 } from '@ant-design/icons'
 import { api, User } from '../lib/api'
 
@@ -55,6 +57,21 @@ const MainLayout = () => {
       key: '/content',
       icon: <FileTextOutlined />,
       label: '内容管理',
+    },
+    {
+      key: '/video',
+      icon: <VideoCameraOutlined />,
+      label: '视频管理',
+    },
+    {
+      key: '/knowledge',
+      icon: <BlockOutlined />,
+      label: '知识库',
+    },
+    {
+      key: '/medicine',
+      icon: <MedicineBoxOutlined />,
+      label: '用药管理',
     },
     {
       key: '/statistics',
