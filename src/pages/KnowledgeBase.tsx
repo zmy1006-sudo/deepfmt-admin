@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react'
-import { Table, Button, Tag, Space, Modal, Form, Input, Select, message, Typography, Tooltip } from 'antd'
+import { Table, Button, Tag, Space, Modal, Form, Input, Select, Switch, message, Typography, Tooltip } from 'antd'
 import { PlusOutlined, EditOutlined, DeleteOutlined, ExperimentOutlined } from '@ant-design/icons'
 import type { ColumnsType } from 'antd/es/table'
-import { api, KBItem } from '../lib/api'
+import { api } from '../lib/api'
+import type { KBItem } from '../lib/dataInit'
 
 const { Title, TextArea } = Typography
-const { Option } = Select
 
+
+const categoryOptions = ['基础知识','适应症','流程','注意事项'].map(v=>({value:v,label:v}))
 const KnowledgeBase = () => {
   const [kbList, setKbList] = useState<KBItem[]>([])
   const [isModalOpen, setIsModalOpen] = useState(false)
@@ -270,18 +272,10 @@ const KnowledgeBase = () => {
           </Form.Item>
           <Space style={{ width: '100%' }} size="middle">
             <Form.Item name="category" label="分类" rules={[{ required: true, message: '请选择分类' }]} style={{ flex: 1 }}>
-              <Select placeholder="请选择分类">
-                <Option value="基础知识">基础知识</Option>
-                <Option value="适应症">适应症</Option>
-                <Option value="流程">流程</Option>
-                <Option value="注意事项">注意事项</Option>
-              </Select>
+              <Select placeholder="请选择分类" options={categoryOptions} />
             </Form.Item>
             <Form.Item name="is_active" label="状态" style={{ flex: 1 }} initialValue={true}>
-              <Select>
-                <Option value={true}>启用</Option>
-                <Option value={false}>禁用</Option>
-              </Select>
+              <Switch checkedChildren="启用" unCheckedChildren="禁用" />
             </Form.Item>
           </Space>
         </Form>

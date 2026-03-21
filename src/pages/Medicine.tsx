@@ -1,12 +1,10 @@
 import { useState, useEffect } from 'react'
-import { Table, Button, Tag, Space, Modal, Form, Input, Select, DatePicker, message, Typography } from 'antd'
+import { Table, Button, Tag, Space, Modal, Form, Input, Select, message, Typography } from 'antd'
 import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons'
 import type { ColumnsType } from 'antd/es/table'
 import { api, MedicineItem, User } from '../lib/api'
 
 const { Title } = Typography
-const { Option } = Select
-const { RangePicker } = DatePicker
 
 const Medicine = () => {
   const [medicines, setMedicines] = useState<MedicineItem[]>([])
@@ -30,12 +28,6 @@ const Medicine = () => {
     return users.find(u => u.id === userId)?.name || userId
   }
 
-  const getUserOptions = () => {
-    return users.map(u => (
-      <Option key={u.id} value={u.id}>{u.name} ({u.phone})</Option>
-    ))
-  }
-
   const filtered = patientSearch
     ? medicines.filter(m => getUserName(m.user_id).toLowerCase().includes(patientSearch.toLowerCase()))
     : medicines
@@ -45,8 +37,6 @@ const Medicine = () => {
     '已停药': 'orange',
     '已完成': 'blue',
   }
-
-  const frequencyOptions = ['每日1次', '每日2次', '每日3次', '每日4次', '睡前1次', '每周1次']
 
   const columns: ColumnsType<MedicineItem> = [
     {
@@ -104,8 +94,8 @@ const Medicine = () => {
       width: 140,
       render: (_: unknown, record: MedicineItem) => (
         <Space size="middle">
-          <Button type="link" icon={<EditOutlined />} onClick={() => handleEdit(record)}>编辑</Button>
-          <Button type="link" danger icon={<DeleteOutlined />} onClick={() => handleDelete(record.id)}>删除</Button>
+          <Button type="link" icon={<EditOutlined />} onClick={() => handleEdit(record)} style={{ color: '#1677ff', padding: 0 }}>编辑</Button>
+          <Button type="link" danger icon={<DeleteOutlined />} onClick={() => handleDelete(record.id)} style={{ padding: 0 }}>删除</Button>
         </Space>
       ),
     },
@@ -119,8 +109,8 @@ const Medicine = () => {
       name: record.name,
       dosage: record.dosage,
       frequency: record.frequency,
-      start_date: record.start_date ? record.start_date : undefined,
-      end_date: record.end_date ? record.end_date : undefined,
+      start_date: record.start_date || undefined,
+      end_date: record.end_date || undefined,
       status: record.status,
     })
     setIsModalOpen(true)
@@ -171,6 +161,14 @@ const Medicine = () => {
     })
   }
 
+  const userSelectOptions = users.map(u => ({ value: u.id, label: `${u.name}（${u.phone}）` }))
+  const frequencyOptions = ['每日1次', '每日2次', '每日3次', '每日4次', '睡前1次', '每周1次'].map(f => ({ value: f, label: f }))
+  const statusOptions = [
+    { value: '服用中', label: '服用中' },
+    { value: '已停药', label: '已停药' },
+    { value: '已完成', label: '已完成' },
+  ]
+
   return (
     <div>
       <Space style={{ marginBottom: 16, justifyContent: 'space-between', width: '100%' }}>
@@ -205,30 +203,27 @@ const Medicine = () => {
       >
         <Form form={form} layout="vertical">
           <Form.Item name="user_id" label="患者姓名" rules={[{ required: true, message: '请选择患者' }]}>
-            <Select placeholder="请选择患者" showSearch filterOption={(input, option) =>
-              (option?.children as unknown as string)?.toLowerCase().includes(input.toLowerCase())
-            }>
-              {getUserOptions()}
-            </Select>
+            <Select
+              placeholder="请选择患者"
+              showSearch
+              filterOption={(input, option) =>
+                (option?.label as unknown as string)?.toLowerCase().includes(input.toLowerCase())
+              }
+              options={userSelectOptions}
+            />
           </Form.Item>
           <Form.Item name="name" label="药品名称" rules={[{ required: true, message: '请输入药品名称' }]}>
             <Input placeholder="如：双歧杆菌胶囊" />
           </Form.Item>
           <Form.Item name="dosage" label="剂量" rules={[{ required: true, message: '请输入剂量' }]}>
-            <Input placeholder="如：每日2次，每次3粒" />
+            <Input.TextArea placeholder="如：每日2次，每次3粒" rows={2} />
           </Form.Item>
           <Space style={{ width: '100%' }} size="middle">
             <Form.Item name="frequency" label="服用频率" rules={[{ required: true, message: '请选择频率' }]} style={{ flex: 1 }}>
-              <Select placeholder="请选择频率">
-                {frequencyOptions.map(f => <Option key={f} value={f}>{f}</Option>)}
-              </Select>
+              <Select placeholder="请选择频率" options={frequencyOptions} />
             </Form.Item>
             <Form.Item name="status" label="状态" style={{ flex: 1 }} initialValue="服用中">
-              <Select>
-                <Option value="服用中">服用中</Option>
-                <Option value="已停药">已停药</Option>
-                <Option value="已完成">已完成</Option>
-              </Select>
+              <Select options={statusOptions} />
             </Form.Item>
           </Space>
           <Space style={{ width: '100%' }} size="middle">

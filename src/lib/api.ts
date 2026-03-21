@@ -180,6 +180,11 @@ export const api = {
     set(STORAGE_KEYS.VIDEOS, updated)
   },
 
+  deleteVideo(id: string): void {
+    const list = get<VideoItem[]>(STORAGE_KEYS.VIDEOS) ?? []
+    set(STORAGE_KEYS.VIDEOS, list.filter(v => v.id !== id))
+  },
+
   // ==================== 随访 ====================
 
   getFollowupTemplates(): FollowupTemplate[] {
